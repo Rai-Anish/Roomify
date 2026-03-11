@@ -1,0 +1,7 @@
+node_modules/
+client/.react-router/
+.env
+client/node_modules/
+server/node_modules/
+build/
+dist/
