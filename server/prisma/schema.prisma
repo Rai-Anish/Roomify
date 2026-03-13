@@ -6,8 +6,46 @@ datasource db {
   provider = "postgresql"
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum Visibility {
+  PRIVATE
+  COMMUNITY
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id                    Int           @id @default(autoincrement())
+  email                 String        @unique
+  username              String        @unique
+  password              String?
+  avatar                String?
+  provider              AuthProvider  @default(LOCAL)
+  googleId              String?       @unique
+
+  isVerified            Boolean       @default(false)
+  verificationToken     String?       @unique
+  verificationTokenExpiry DateTime?
+
+  projects              Project[]
+
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model Project {
+  id         Int        @id @default(autoincrement())
+  title      String
+  prompt     String
+  originalImageUrl String?
+  imageUrl   String?
+  visibility Visibility @default(PRIVATE)
+
+  userId     Int
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }

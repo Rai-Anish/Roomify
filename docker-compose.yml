@@ -3,9 +3,9 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: anish
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: roomify_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
       - "5000:5000"
       - "5555:5555" 
     environment:
-      - DATABASE_URL=postgresql://anish:password@db:5432/roomify_db
+      - DATABASE_URL=${DATABASE_URL}
       - PORT=5000
     depends_on:
       - db
