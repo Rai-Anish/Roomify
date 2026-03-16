@@ -11,13 +11,14 @@ import {
     updateProject,
     deleteProject,
 } from "../controllers/project.controller.js";
+import { upload } from "../middlewares/upload.middleware.js";
 
 const router = Router();
 
 router.get("/community", getCommunityProjects);
 router.get("/my", authenticate, getMyProjects);
 router.get("/:id", getProject);
-router.post("/", authenticate, validate(createProjectSchema), createProject);
+router.post("/", authenticate, upload.single("floorPlan"), validate(createProjectSchema), createProject);
 router.put("/:id", authenticate, authorizeProject, validate(updateProjectSchema), updateProject);
 router.delete("/:id", authenticate, authorizeProject, deleteProject);
 
