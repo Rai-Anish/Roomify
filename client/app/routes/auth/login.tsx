@@ -1,68 +1,68 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useLogin } from "../../hooks/useAuth.js";
+import { useLogin } from "../../hooks/useAuth";
+import { AuthForm } from "~/components/AuthForm";
+import { FormField } from "~/components/ui/FormField";
+import { Mail, Lock, Chrome, Github } from "lucide-react";
 
 export default function LoginPage() {
-    const navigate = useNavigate();
-    const login = useLogin();
+  const navigate = useNavigate();
+  const { mutate, isPending } = useLogin();
+  const [message, setMessage] = useState("");
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.currentTarget);
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
+  const handleSubmit = (formData: FormData) => {
+    setMessage("");
 
-        // The logic for storing the user is inside useLogin's onSuccess
-        login.mutate(
-            { email, password },
-            {
-                onSuccess: () => {
-                    // This only runs if the backend verified the credentials
-                    navigate("/"); 
-                },
-                onError: (error: any) => {
-                    // This runs if the email/password was wrong
-                    console.error(error.response?.data?.message || "Invalid credentials");
-                },
-            }
-        );
-    };
+    const data = Object.fromEntries(formData.entries()) as any;
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-2xl font-bold mb-4">Login to Roomify</h1>
-            
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm">
-                <input 
-                    name="email" 
-                    type="email" 
-                    placeholder="Email" 
-                    required 
-                    className="border p-2 rounded"
-                />
-                <input 
-                    name="password" 
-                    type="password" 
-                    placeholder="Password" 
-                    required 
-                    className="border p-2 rounded"
-                />
-                
-                <button 
-                    type="submit" 
-                    disabled={login.isPending}
-                    className="bg-blue-500 text-white p-2 rounded disabled:bg-gray-400"
-                >
-                    {login.isPending ? "Authenticating..." : "Login"}
-                </button>
+    data.email = data.email.trim();
+    data.password = data.password.trim();
 
-                {/* Show server-side error messages (e.g., "Invalid Password") */}
-                {login.isError && (
-                    <p className="text-red-500 text-sm text-center">
-                        {(login.error as any).response?.data?.message || "Something went wrong"}
-                    </p>
-                )}
-            </form>
-        </div>
-    );
+    if (!data.email || !data.password) {
+      setMessage("Email and password are required");
+      return;
+    }
+
+    mutate(data, {
+      onSuccess: () => navigate("/"),
+      onError: (err: any) =>
+        setMessage(err.response?.data?.message || "Invalid credentials"),
+    });
+  };
+
+  return (
+    <AuthForm
+      title="FloorPlan3D"
+      subtitle="Welcome back"
+      onSubmit={handleSubmit}
+      isPending={isPending}
+      message={message}
+      isLogin = {true}
+      urlLink="/signup"
+    >
+      <FormField
+        label="Email Address"
+        name="email"
+        type="email"
+        placeholder="example@example.com"
+        icon={<Mail className="w-4 h-4" />}
+        autoFocus
+        autoComplete="email"
+        disabled={isPending}
+        onChange={() => message && setMessage("")}
+      />
+
+      <FormField
+        label="Password"
+        name="password"
+        type="password"
+        placeholder="••••••••"
+        icon={<Lock className="w-4 h-4" />}
+        autoComplete="current-password"
+        disabled={isPending}
+        onChange={() => message && setMessage("")}
+      />
+      
+    </AuthForm>
+  );
 }

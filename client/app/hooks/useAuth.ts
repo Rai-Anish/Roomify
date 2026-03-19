@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios.js";
 import { useAuthStore } from "../store/authStore.js";
 import type { ApiResponse, User } from "../types/index.js";
+import { toast } from "sonner";
 
 export const useRegister = () => {
     return useMutation({
@@ -16,6 +17,9 @@ export const useRegister = () => {
             );
             return response.data;
         },
+        onSuccess:() =>{
+            toast.success("Registeration successful. Please verify your account!")
+        }
     });
 };
 
@@ -26,7 +30,6 @@ export const useLogin = () => {
 
     return useMutation({
         mutationFn: async (data: { email: string; password: string }) => {
-            // Note: Fixed the nested ApiResponse type layout here
             const response = await axiosInstance.post<ApiResponse<{ user: User; accessToken: string }>>(
                 "auth/login", 
                 data
