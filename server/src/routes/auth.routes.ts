@@ -11,6 +11,7 @@ import {
 import { validate } from "../middlewares/validate.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { registerSchema, loginSchema } from "../types/auth.types.js";
+import { googleAuth, googleCallback, googleTokenAuth } from "../controllers/oauth.controller.js";
 
 const router = Router();
 
@@ -21,5 +22,11 @@ router.post("/resend-verification", resendVerification);
 router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", authenticate, getMe);
+
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
+
+// For google provided login button
+router.post("/google/token", googleTokenAuth);
 
 export default router;

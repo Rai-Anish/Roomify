@@ -7,6 +7,12 @@ import errorHandler from "./middlewares/errorHandler.middleware.js";
 
 const app: Application = express();
 
+// COOP header for Google Sign-In popup
+app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    next();
+});
+
 app.use(cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,

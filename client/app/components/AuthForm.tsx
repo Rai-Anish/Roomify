@@ -2,6 +2,7 @@ import { CheckCircle, Chrome, Github, XCircle } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/Button";
+import { GoogleButton } from "./GoogleButton";
 
 type AuthFormProps = {
   title: string;
@@ -81,15 +82,31 @@ export const AuthForm = ({
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <button className="btn btn--secondary btn--md flex items-center justify-center">
-                  <Chrome className="w-4 h-4 mr-2" />
-                  Google
+              <div className="mt-6 flex flex-col gap-4">
+                <div>
+                  {/* <GoogleButton /> */}
+                </div>
+                {
+                  isLogin? (
+                    <button
+                    type="button"
+                    onClick={() => window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google`}
+                    className="btn btn--secondary btn--md flex items-center justify-center"
+                >
+                    <Chrome className="w-4 h-4 mr-2" />
+                    Sign In with Google 
                 </button>
-                <button className="btn btn--secondary btn--md flex items-center justify-center">
-                  <Github className="w-4 h-4 mr-2" />
-                  GitHub
+                  ):(
+                    <button
+                    type="button"
+                    onClick={() => window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google`}
+                    className="btn btn--secondary btn--md flex items-center justify-center"
+                >
+                    <Chrome className="w-4 h-4 mr-2" />
+                    Sign Up with Google 
                 </button>
+                  )
+                }
               </div>
         </div>
 

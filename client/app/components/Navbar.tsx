@@ -37,7 +37,14 @@ return (
                     {
                         isSignedIn ? (
                             <>
-                                <span className="capitalize">Hi, {user.username}</span>
+                                
+                                    {
+                                        user.avatar ? (
+                                            <img src={user.avatar}  alt={user.username} className="w-9 h-9 rounded-full"/>
+                                        ) :
+                                        <span className="capitalize">Hi, {user.username} </span>
+                                    }
+                                
                                 <Button className="user-name" onClick={logoutAction}>Logout</Button>
                             </>
                         ) : (

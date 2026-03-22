@@ -31,7 +31,10 @@ services:
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - COMFYUI_URL=${COMFYUI_URL}
-      - VITE_SERVER_URL=${VITE_SERVER_URL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - CLIENT_URL=${CLIENT_URL}
     volumes:
       - ./server:/app
       - /app/node_modules
@@ -44,7 +47,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:5000
+      - VITE_SERVER_URL=${VITE_SERVER_URL}
+      - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     volumes:
       - ./client:/app
       - /app/node_modules

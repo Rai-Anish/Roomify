@@ -29,7 +29,7 @@ export const useCommunityProjects = () => {
     });
 };
 
-export const useProject = (id: number) => {
+export const useProject = (id: number, enabled: boolean = true) => {
     return useQuery({
         queryKey: ["projects", id],
         queryFn: async () => {
@@ -38,19 +38,8 @@ export const useProject = (id: number) => {
             );
             return response.data.data.project;
         },
-        enabled: !!id,
-
-        refetchInterval: (query) => {
-            const data = query.state.data;
-
-            if (!data) return 2000;
-
-            if (data.imageUrl && data.imageUrl !== "FAILED") {
-                return false; // stop polling
-            }
-
-            return 2000; // keep polling
-        },
+        enabled: !!id && enabled,
+        retryDelay: 1000,
     });
 };
 

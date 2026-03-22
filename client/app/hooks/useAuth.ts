@@ -113,3 +113,25 @@ export const useResendVerification = () => {
         },
     });
 };
+
+
+// for google login button
+export const useGoogleLogin = () => {
+    const { setAccessToken, setUser } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (credential: string) => {
+            const response = await axiosInstance.post<ApiResponse<{ user: User; accessToken: string }>>(
+                "auth/google/token",
+                { credential }
+            );
+            return response.data;
+        },
+        onSuccess: (res) => {
+            setAccessToken(res.data.accessToken);
+            setUser(res.data.user);
+            queryClient.setQueryData(["user"], res.data.user);
+        },
+    });
+};
