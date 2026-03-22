@@ -28,9 +28,6 @@ const VisualizerId = () => {
         return () => clearInterval(interval);
     }, [project, refetch, isReady]);
 
-
-console.log("access token:", useAuthStore.getState().accessToken)
-
 // check for 403 specifically
 const is403 = (error as any)?.response?.status === 403;
 const is404 = (error as any)?.response?.status === 404;
@@ -40,14 +37,6 @@ if (!isReady || isLoading) {
         <section className="flex flex-col items-center justify-center min-h-screen gap-4">
             <div className="animate-spin w-8 h-8 border-2 border-zinc-300 border-t-zinc-800 rounded-full" />
             <p className="text-zinc-500">Creating your project...</p>
-        </section>
-    );
-}
-
-if (is403) {
-    return (
-        <section className="flex flex-col items-center justify-center min-h-screen gap-4">
-            <p className="text-red-500">You don't have permission to view this project.</p>
         </section>
     );
 }

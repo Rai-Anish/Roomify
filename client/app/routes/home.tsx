@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "~/components/Navbar";
-import { ArrowRight, ArrowUpRight, Clock, Layers } from "lucide-react";
+import Navbar from "~/components/navbar/Navbar";
+import { ArrowRight, Layers } from "lucide-react";
 import { Button } from "~/components/ui/Button";
 import Upload from "~/components/Upload";
 import { ProjectSettingsModal } from "~/components/ProjectSettingsModal";
-import { useCommunityProjects, useCreateProject } from "~/hooks/useProject";
+import { ProjectCard } from "~/components/ProjectCard";
+import { useCommunityProjects, useCreateProject, useMyProjects } from "~/hooks/useProject";
+import { useAuthStore } from "~/store/authStore";
 
 export default function Home() {
     const navigate = useNavigate();
     const createProjectMutation = useCreateProject();
     const { data: communityProjects, isLoading: communityLoading } = useCommunityProjects();
+    const { data: myProjects, isLoading: myProjectsLoading } = useMyProjects();
+    const user = useAuthStore((state) => state.user);
 
     const [pendingImage, setPendingImage] = useState<string | null>(null);
     const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -66,9 +70,7 @@ export default function Home() {
             <section className="hero">
                 <div>
                     <h2 className="announce">
-                        <div className="dot">
-                            <div className="pulse"></div>
-                        </div>
+                        <div className="dot"><div className="pulse"></div></div>
                         <p>Introducing RoomMod 2.0</p>
                     </h2>
                 </div>
@@ -103,36 +105,22 @@ export default function Home() {
                 <div className="section-inner">
                     <div className="section-head">
                         <div className="copy">
-                            <h2>Projects</h2>
-                            <p>Your latest works and community projects, all in one</p>
+                            <h2>Community</h2>
+                            <p>Projects shared by the community</p>
                         </div>
                     </div>
                     <div className="projects-grid">
                         {communityLoading ? (
                             <p>Loading community projects...</p>
+                        ) : communityProjects?.length === 0 ? (
+                            <p>No community projects yet.</p>
                         ) : (
                             communityProjects?.map((proj) => (
-                                <div key={proj.id} className="project-card group">
-                                    <div className="preview">
-                                        <img src={proj.imageUrl || proj.originalImageUrl || ''} alt={proj.title} />
-                                        <div className="badge">
-                                            <span>{proj.visibility}</span>
-                                        </div>
-                                    </div>
-                                    <div className="card-body">
-                                        <div>
-                                            <h3>{proj.title}</h3>
-                                            <div className="meta">
-                                                <Clock size={12} />
-                                                <span>{new Date(proj.createdAt).toLocaleDateString()}</span>
-                                                <span>By {proj.user.username}</span>
-                                            </div>
-                                        </div>
-                                        <div className="arrow">
-                                            <ArrowUpRight size={18} />
-                                        </div>
-                                    </div>
-                                </div>
+                                <ProjectCard
+                                    key={proj.id}
+                                    project={proj}
+                                    showAuthor={true}
+                                />
                             ))
                         )}
                     </div>

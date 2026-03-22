@@ -64,6 +64,7 @@ export const useCreateProject = () => {
         onSuccess: () => {
             // Refresh "my projects" list so the new project shows up
             queryClient.invalidateQueries({ queryKey: ["projects", "my"] });
+            queryClient.invalidateQueries({queryKey:["projects", "community"]})
         },
     });
 };
