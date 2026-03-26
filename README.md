@@ -14,7 +14,112 @@
 
 ![Roomify Architecture](./docs/architecture.png)
 
----
+### 1. Infrastructure
+
+```mermaid
+graph LR
+    Client["🌐 React Client\nVite + React Router v7"]
+    Server["⚙️ Express API\nNode + TypeScript"]
+    DB[("🐘 PostgreSQL")]
+    Cache[("🔴 Redis")]
+    Storage["☁️ Cloudinary"]
+    AI["🤖 AI Provider\nGemini / ComfyUI"]
+
+    Client -->|REST + SSE| Server
+    Server --> DB
+    Server --> Cache
+    Cache -->|BullMQ Job| AI
+    AI --> Storage
+    Storage --> Server
+    Server -->|SSE Push| Client
+```
+
+### 2. Authentication
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client
+    participant API
+    participant DB
+
+    User->>Client: Login / Register
+    Client->>API: POST /auth/login
+    API->>DB: Verify credentials
+    DB-->>API: User found ✅
+    API-->>Client: Access Token (body) + Refresh Token (HttpOnly cookie)
+    Client->>Client: Store access token in Zustand
+
+    Note over Client,API: Later — access token expires
+
+    Client->>API: Request (expired token)
+    API-->>Client: 401 Unauthorized
+    Client->>API: POST /auth/refresh (cookie sent automatically)
+    API-->>Client: New access token
+    Client->>API: Retry original request ✅
+```
+
+### 3. Project Creation & AI Rendering
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client
+    participant API
+    participant Cloudinary
+    participant Redis
+    participant Worker
+    participant AI
+
+    User->>Client: Upload floor plan
+    Client->>API: POST /api/projects (image + form data)
+    API->>Cloudinary: Save original image
+    API->>DB: Create project record
+    API->>Redis: Queue render job
+    API-->>Client: 201 Created ✅ (instant response)
+
+    Note over Redis,Worker: Background — runs independently
+
+    Worker->>Redis: Pick up job
+    Worker->>AI: Generate render
+    AI-->>Worker: Rendered image
+    Worker->>Cloudinary: Upload render
+    Worker->>DB: Update project imageUrl
+    Worker-->>Client: 🔔 SSE event: project_updated
+    Client->>Client: Auto-refresh UI ✅
+```
+
+### 4. Real-Time Updates (SSE)
+
+```mermaid
+graph LR
+    A["useProjectUpdates()\nhook mounts"] -->|"Open EventSource\n/api/projects/stream?token=..."| B["Express SSE endpoint\nauthenticate middleware"]
+    B --> C["SSE Manager\nstores userId + res"]
+    D["BullMQ Worker\njob finishes"] --> E["sendSseEvent(userId, 'project_updated')"]
+    E --> C
+    C -->|"Writes event to stream"| F["Browser receives event"]
+    F --> G["React Query\ninvalidateQueries()"]
+    G --> H["UI auto-updates\nwith new image ✅"]
+```
+
+### 5. Security Layers
+
+```mermaid
+flowchart TD
+    R["Incoming Request"]
+    R --> A["🛡️ Global Rate Limit\n100 req / 15 min"]
+    A --> B{"Auth route?"}
+    B -->|Yes| C["🔐 Strict Auth Limit\n10 req / 1 hour"]
+    B -->|No| D["authenticate\nVerify JWT"]
+    C --> D
+    D --> E{"Mutating project?"}
+    E -->|Yes| F["IDOR Check\nmust be project owner"]
+    E -->|No| G["Controller ✅"]
+    F --> G
+    G --> H["📦 Global Error Handler"]
+```
+
+
 
 ## Overview
 
