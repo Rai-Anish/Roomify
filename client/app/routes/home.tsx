@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Navbar from "~/components/navbar/Navbar";
 import { ArrowRight, Layers } from "lucide-react";
 import { Button } from "~/components/ui/Button";
@@ -13,7 +13,6 @@ export default function Home() {
     const navigate = useNavigate();
     const createProjectMutation = useCreateProject();
     const { data: communityProjects, isLoading: communityLoading } = useCommunityProjects();
-    const { data: myProjects, isLoading: myProjectsLoading } = useMyProjects();
     const user = useAuthStore((state) => state.user);
 
     const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -71,20 +70,17 @@ export default function Home() {
                 <div>
                     <h2 className="announce">
                         <div className="dot"><div className="pulse"></div></div>
-                        <p>Introducing RoomMod 2.0</p>
+                        <p>Introducing FP3D 2.0</p>
                     </h2>
                 </div>
-                <h1>Build beautiful spaces at the speed of thoughts with RoomMod</h1>
+                <h1>Build beautiful spaces at the speed of thoughts with FloorPlan3D</h1>
                 <p className="subtitle">
                     RoomMod is AI-first design environment which helps you design and customize your rooms with ease.
                 </p>
                 <div className="actions">
-                    <a href="#upload" className="cta">
+                    <Link to="/signup" className="cta">
                         Get Started <ArrowRight className="icon" />
-                    </a>
-                    <Button variant="outline" className="cta-button">
-                        Watch Demo
-                    </Button>
+                    </Link>
                 </div>
                 <div className="upload-shell">
                     <div className="grid-overlay" />

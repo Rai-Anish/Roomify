@@ -43,7 +43,7 @@ export const ComparisonSlider = ({ original, render, sliderPos, setSliderPos }: 
         style={{ left: `${sliderPos}%` }}
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center text-zinc-800 border border-zinc-100">
-          <MoveHorizontal className="bg-red-200" size={20} />
+          <MoveHorizontal size={20} />
         </div>
       </div>
     </div>

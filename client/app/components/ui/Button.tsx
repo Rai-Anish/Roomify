@@ -1,61 +1,32 @@
-import * as React from "react";
+import { motion,type HTMLMotionProps } from "framer-motion";
 
-export type ButtonVariant =
-  | "default" 
-  | "destructive" 
-  | "outline"
-  | "subtle"
-  | "ghost"
-  | "link";
 
-export type ButtonSize = "default" | "sm" | "lg";
-
-interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+interface ButtonProps extends HTMLMotionProps<"button"> {
+  variant?: "primary" | "outline" | "ghost" | "dark";
   fullWidth?: boolean;
 }
 
-const variantClasses: Record<ButtonVariant, string> = {
-  default: "btn btn--primary",
-  destructive: "btn btn--secondary",
-  outline: "btn btn--outline",
-  subtle: "btn btn--ghost",
-  ghost: "btn btn--ghost",
-  link: "text-blue-600 underline hover:text-blue-800",
+export const Button = ({ 
+  children, 
+  variant = "primary", 
+  fullWidth, 
+  className, 
+  ...props 
+}: ButtonProps) => {
+  const variants = {
+    primary: "bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/20",
+    outline: "bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50",
+    dark: "bg-zinc-900 text-white hover:bg-zinc-800",
+    ghost: "text-zinc-600 hover:bg-zinc-100",
+  };
+
+  return (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      className={`inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-sm transition-all ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className ?? ""}`}
+      {...props} // Now TypeScript is happy because the types match
+    >
+      {children}
+    </motion.button>
+  );
 };
-
-const sizeClasses: Record<ButtonSize, string> = {
-  default: "btn--md",
-  sm: "btn--sm",
-  lg: "btn--lg",
-};
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant = "default", size = "default", fullWidth = false, ...props },
-    ref
-  ) => {
-    const classes = [
-      "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
-      variantClasses[variant],
-      sizeClasses[size],
-      fullWidth ? "w-full" : "",
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return (
-      <button
-        className={classes}
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
-Button.displayName = "Button";
-
-export { Button };
