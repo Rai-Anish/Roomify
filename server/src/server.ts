@@ -1,12 +1,14 @@
 import "./config/env.js";
 import app from "./app.js";
 import { connectDB, disconnectDB } from "./config/db.js";
+import { initProjectWorker } from "./jobs/project.processor.js";
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
         await connectDB();
+        initProjectWorker();
 
         const server = app.listen(PORT, () => {
             console.log(`✓ Server running on http://localhost:${PORT}`);

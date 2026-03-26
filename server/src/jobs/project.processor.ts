@@ -1,43 +1,65 @@
-import { generateRender as  generateWithGemini} from "../services/gemini.service";
-import { generateRender as generateWithComfyUI } from "../services/comfyui.service";
-import { uploadToCloudinary } from "../utils/cloudinary";
-import { prisma } from "../config/db";
+import { Worker, Job } from "bullmq";
+import { connection } from "./queue.js";
+import { generateRender as generateWithGemini } from "../services/gemini.service.js";
+import { generateRender as generateWithComfyUI } from "../services/comfyui.service.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { prisma } from "../config/db.js";
+import { sendSseEvent } from "../utils/sse.js";
 
-export const processProject = async (
-    projectId: number,
-    provider: string,
-    file: Express.Multer.File
-) => {
-    try {
-        
-        let imageBuffer: Buffer;
-        let mimeType: string;
+export interface ProjectJobData {
+    projectId: number;
+    provider: string;
+    fileBuffer: string; // Base64 encoded
+    mimeType: string;
+}
 
-        if (provider === "gemini") {
-            ({ imageBuffer, mimeType } = await generateWithGemini(file.buffer, file.mimetype));
-        } else {
-            ({ imageBuffer, mimeType } = await generateWithComfyUI(file.buffer, file.mimetype));
+export const initProjectWorker = () => {
+    const worker = new Worker(
+        "project-render-queue",
+        async (job: Job<ProjectJobData>) => {
+            const { projectId, provider, fileBuffer, mimeType } = job.data;
+            const buffer = Buffer.from(fileBuffer, "base64");
+
+            let imageBuffer: Buffer;
+            let outputMimeType: string;
+
+            if (provider === "gemini") {
+                ({ imageBuffer, mimeType: outputMimeType } = await generateWithGemini(buffer, mimeType));
+            } else {
+                ({ imageBuffer, mimeType: outputMimeType } = await generateWithComfyUI(buffer, mimeType));
+            }
+
+            const imageUrl = await uploadToCloudinary(
+                imageBuffer,
+                outputMimeType,
+                "roomify/renders"
+            );
+
+            const proj = await prisma.project.update({
+                where: { id: projectId },
+                data: { imageUrl },
+            });
+            
+            sendSseEvent(proj.userId, "project_updated", { id: projectId, status: "completed", imageUrl });
+            
+            return imageUrl;
+        },
+        { 
+            connection,
+            concurrency: 2 // Max 2 concurrent image generations to respect ComfyUI limits
         }
+    );
 
-        const imageUrl = await uploadToCloudinary(
-            imageBuffer,
-            mimeType,
-            "roomify/renders"
-        );
+    worker.on("failed", async (job, err) => {
+        console.error(`❌ Job ${job?.id} failed:`, err);
+        if (job) {
+            const proj = await prisma.project.update({
+                where: { id: job.data.projectId },
+                data: { imageUrl: "FAILED" },
+            });
+            sendSseEvent(proj.userId, "project_failed", { id: job.data.projectId, status: "failed" });
+        }
+    });
 
-        // ✅ update project when done
-        await prisma.project.update({
-            where: { id: projectId },
-            data: { imageUrl },
-        });
-
-    } catch (err) {
-        console.error("❌ Processing failed:", err);
-
-        // optional: mark as failed
-        await prisma.project.update({
-            where: { id: projectId },
-            data: { imageUrl: "FAILED" },
-        });
-    }
+    console.log("✓ BullMQ Project Worker initialized");
 };

@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import errorHandler from "./middlewares/errorHandler.middleware.js";
 import userRoutes from "./routes/user.routes.js";   
+import { globalLimiter } from "./middlewares/rateLimit.middleware.js";
 
 const app: Application = express();
 
@@ -22,7 +23,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Trust proxy necessary behind a reverse proxy (like Render/DigitalOcean/Docker)
+app.set("trust proxy", 1);
+app.use(globalLimiter);// Health check
 app.get("/api/health", (req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
 });

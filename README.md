@@ -1,4 +1,4 @@
-# Roomify — AI Floor Plan Visualizer
+# FloorPlan3D — AI Floor Plan Visualizer
 
 > Transform 2D floor plans into photorealistic 3D architectural renders using AI.
 
@@ -12,7 +12,70 @@
 
 ## Overview
 
-Roomify is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — in seconds.
+FloorPlan3D is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — delivered in real-time via Server-Sent Events.
+
+## DEMO
+![alt text](./docs/florplan3d.gif)
+[**🎥 Watch Full Video Demo on YouTube**](https://youtu.be/fiViL17RGFA)
+
+## Architecture
+
+![FloorPlan3D Architecture](./docs/architecture.png)
+
+### 1. Authentication
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client
+    participant API
+    participant DB
+
+    User->>Client: Login / Register
+    Client->>API: POST /auth/login
+    API->>DB: Verify credentials
+    DB-->>API: User found ✅
+    API-->>Client: Access Token (body) + Refresh Token (HttpOnly cookie)
+    Client->>Client: Store access token in Zustand
+
+    Note over Client,API: Later — access token expires
+
+    Client->>API: Request (expired token)
+    API-->>Client: 401 Unauthorized
+    Client->>API: POST /auth/refresh (cookie sent automatically)
+    API-->>Client: New access token
+    Client->>API: Retry original request ✅
+```
+
+### 2. Project Creation & AI Rendering
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client
+    participant API
+    participant Cloudinary
+    participant Redis
+    participant Worker
+    participant AI
+
+    User->>Client: Upload floor plan
+    Client->>API: POST /api/projects (image + form data)
+    API->>Cloudinary: Save original image
+    API->>DB: Create project record
+    API->>Redis: Queue render job
+    API-->>Client: 201 Created ✅ (instant response)
+
+    Note over Redis,Worker: Background — runs independently
+
+    Worker->>Redis: Pick up job
+    Worker->>AI: Generate render
+    AI-->>Worker: Rendered image
+    Worker->>Cloudinary: Upload render
+    Worker->>DB: Update project imageUrl
+    Worker-->>Client: 🔔 SSE event: project_updated
+    Client->>Client: Auto-refresh UI ✅
+```
 
 **Two AI rendering providers are supported:**
 
@@ -26,10 +89,14 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 - Upload 2D floor plan images (JPG, PNG, WebP, SVG)
 - AI-powered photorealistic render generation
 - Choose between ComfyUI (local GPU) or Gemini AI (cloud)
+- **Real-time render status** via Server-Sent Events (no polling!)
+- **Persistent background jobs** via BullMQ + Redis (crash-safe)
 - Private and community project visibility
+- **Delete project** with Cloudinary image cleanup
 - Google OAuth sign-in
 - Email verification via Resend
 - JWT authentication with automatic token refresh
+- Rate limiting on all API endpoints
 - User profile management with avatar upload
 - Community gallery of shared projects
 - Fully responsive UI
@@ -45,9 +112,10 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 | TypeScript | Type safety |
 | Tailwind CSS v4 | Styling |
 | TanStack Query | Server state management & caching |
-| Zustand | Client state management |
-| Axios | HTTP client with interceptors |
+| Zustand | Client state management (auth tokens) |
+| Axios | HTTP client with interceptors & auto-refresh |
 | Sonner | Toast notifications |
+| Zod | Client environment variable validation |
 
 ### Backend
 | Technology | Purpose |
@@ -56,13 +124,16 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 | TypeScript | Type safety |
 | Prisma ORM v7 | Database access |
 | PostgreSQL | Primary database |
+| Redis | BullMQ job queue backing store |
+| BullMQ | Persistent background job queue |
 | JWT | Authentication (access + refresh tokens) |
 | bcryptjs | Password hashing |
 | Multer | File upload handling |
-| Cloudinary | Image storage |
+| Cloudinary | Image storage & CDN |
 | Resend | Transactional emails |
 | google-auth-library | Google OAuth token verification |
-| Zod | Request validation |
+| Zod | Request & environment variable validation |
+| express-rate-limit | API rate limiting |
 
 ### AI & Rendering
 | Technology | Purpose |
@@ -75,7 +146,8 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 ### Infrastructure
 | Technology | Purpose |
 |---|---|
-| Docker + Docker Compose | Containerized development |
+| Docker + Docker Compose | Containerized development & production |
+| Redis (docker) | BullMQ job queue |
 | Cloudinary | Image CDN and storage |
 
 ---
@@ -83,123 +155,76 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 ## Project Structure
 
 ```
-roomify/
+FloorPlan3D/
 ├── client/                          # React Router 7 frontend
 │   ├── app/
 │   │   ├── components/              # Reusable UI components
-                ├── Navbar/
-│   │   │           ├── Navbar.tsx
-│   │   │           ├── NavDropdown.tsx
-│   │   │           ├── NavMobile.tsx
-                ├── Profile/
-│   │   │           ├── ChangePasswordForm.tsx
-│   │   │           ├── DangerZone.tsx
-│   │   │           ├── EditProfileForm.tsx
-                    ├── ProfileStats.tsx
-                ├── Project/
-│   │   │           ├── ProjectCard.tsx
-│   │   │           ├── ProjectCardSkeleteon.tsx
-│   │   │           ├── ProjectSettingsModal.tsx
-                ├── ui/
-│   │   │           ├── Accordion.tsx
-│   │   │           ├── Button.tsx
-│   │   │           ├── FOrmField.tsx
-│   │   │           ├── FullPageLoader.tsx
-│   │   │           ├── PricingCard.tsx
-│   │   │           ├── Skeleton.tsx
-                ├── visualizer/
-│   │   │           ├── ComparisonSlider.tsx
-│   │   │           ├── VisualizerActions.tsx
-│   │   │   ├── AuthForm.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   ├── GoogleButton.tsx
-│   │   │   └── Upload.tsx
-│   │   ├── hooks/                   # React Query hooks
+│   │   │   ├── Navbar/
+│   │   │   ├── Profile/
+│   │   │   ├── project/
+│   │   │   │   ├── ProjectCard.tsx
+│   │   │   │   └── ProjectCardSkeleton.tsx
+│   │   │   ├── ui/
+│   │   │   │   ├── ConfirmModal.tsx
+│   │   │   │   ├── FullPageLoader.tsx
+│   │   │   │   └── ...
+│   │   │   └── visualizer/
+│   │   │       ├── ComparisonSlider.tsx
+│   │   │       └── VisualizerActions.tsx
+│   │   ├── hooks/
 │   │   │   ├── useAuth.ts
-│   │   │   ├── useProject.ts
+│   │   │   ├── useProject.ts        # Includes useProjectUpdates (SSE)
 │   │   │   └── useUser.ts
-│   │   ├── routes/                  # Page components
+│   │   ├── routes/
 │   │   │   ├── home.tsx
 │   │   │   ├── my-projects.tsx
-│   │   │   ├── pricing.tsx
-│   │   │   ├── enterprise.tsx
-│   │   │   ├── layout.tsx
 │   │   │   ├── visualizer.tsx
-        └── legal/
-│   │   │       ├── privacy.tsx
-│   │   │       ├── terms.tsx
-│   │   │       ├── cookies.tsx
-        └── profile/
-│   │   │       ├── profile-skeleton.tsx
-│   │   │       ├── profile.tsx
-│   │   │   └── auth/
-│   │   │          ├── login.tsx
-│   │   │          ├── signup.tsx
-│   │   │          ├── verify.tsx
-│   │   │          └── auth.callback.tsx
-                   └── layout.tsx
-│   │   ├── schemas/
-│   │   │   └── auth.schema.ts
+│   │   │   └── ...
 │   │   ├── store/
 │   │   │   └── authStore.ts         # Zustand auth store
 │   │   ├── lib/
-│   │   │   ├── axios.ts             # Axios instance + interceptors
-│   │   │   └── constants.ts
-            └── utils.ts
-│   │   └── types/
-│   │       └── index.ts
-│   │   ├── app.css
-│   │   ├── root.tsx
-│   │   ├── routes.ts
+│   │   │   └── axios.ts             # Axios instance + interceptors
+│   │   ├── env.ts                   # Zod client env validation
+│   │   └── root.tsx
 │   └── package.json
 │
 ├── server/                          # Express + TypeScript backend
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.ts                # Prisma client
+│   │   │   ├── db.ts                # Prisma client
+│   │   │   └── env.ts               # Zod server env validation
 │   │   ├── controllers/
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── project.controller.ts
-│   │   │   ├── oauth.controller.ts
 │   │   │   └── user.controller.ts
 │   │   ├── jobs/
-│   │   │   └── project.processor.ts # Async render processing
+│   │   │   ├── queue.ts             # BullMQ queue + Redis connection
+│   │   │   └── project.processor.ts # BullMQ Worker (AI rendering)
 │   │   ├── middlewares/
 │   │   │   ├── auth.middleware.ts
 │   │   │   ├── authorize.middleware.ts
+│   │   │   ├── rateLimit.middleware.ts
 │   │   │   ├── validate.middleware.ts
-│   │   │   ├── upload.middleware.ts
-│   │   │   └── errorHandler.middleware.ts
+│   │   │   └── upload.middleware.ts
 │   │   ├── routes/
 │   │   │   ├── auth.routes.ts
 │   │   │   ├── project.routes.ts
 │   │   │   └── user.routes.ts
 │   │   ├── services/
 │   │   │   ├── auth.service.ts
-│   │   │   ├── user.service.ts
+│   │   │   ├── project.service.ts
 │   │   │   ├── gemini.service.ts
-│   │   │   ├── oauth.service.ts
 │   │   │   └── comfyui.service.ts
-│   │   │   └── project.service.ts
-│   │   ├── types/
-│   │   │   ├── auth.types.ts
-│   │   │   ├── project.types.ts
-│   │   │   └── user.types.ts
 │   │   └── utils/
 │   │       ├── ApiError.ts
-│   │       ├── ApiResponse.ts
-│   │       ├── asyncHandler.ts
-│   │       ├── jwt.utils.ts
-│   │       ├── token.utils.ts
-│   │       ├── email.utils.ts
-│   │       └── cloudinary.ts
-│   │   └── app.ts
-│   │   └── server.ts
+│   │       ├── cloudinary.ts        # Upload + delete helpers
+│   │       └── sse.ts               # SSE manager
 │   ├── prisma/
 │   │   └── schema.prisma
-│   ├── prisma.config.ts
 │   └── package.json
 │
+├── docs/
+│   └── architecture.png             # Architecture diagram
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 └── .env.example
@@ -219,8 +244,8 @@ roomify/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/roomify.git
-cd roomify
+git clone https://github.com/Rai-Anish/FloorPlan3D.git
+cd FloorPlan3D
 ```
 
 ### 2. Configure environment variables
@@ -231,7 +256,7 @@ cp .env.example .env
 
 Open `.env` and fill in all required values (see [Environment Variables](#environment-variables)).
 
-### 3. Set up ComfyUI models
+### 3. Set up ComfyUI models (optional — for local GPU rendering)
 
 Download the following models into your ComfyUI installation:
 
@@ -251,6 +276,8 @@ python main.py --listen 0.0.0.0 --port 8188
 ```bash
 docker-compose -f docker-compose.dev.yml up -d
 ```
+
+This starts PostgreSQL, Redis, the Express server, and the Vite client.
 
 ### 5. Run database migrations
 
@@ -275,10 +302,13 @@ Create a `.env` file in the root directory. See `.env.example` for all variables
 
 ```env
 # Database
-POSTGRES_USER=roomify
+POSTGRES_USER=FloorPlan3D
 POSTGRES_PASSWORD=password
-POSTGRES_DB=roomify_db
-DATABASE_URL=postgresql://roomify:password@db:5432/roomify_db
+POSTGRES_DB=FloorPlan3D_db
+DATABASE_URL=postgresql://FloorPlan3D:password@db:5432/FloorPlan3D_db
+
+# Redis (auto-configured via Docker)
+REDIS_URL=redis://redis:6379
 
 # JWT
 JWT_ACCESS_SECRET=
@@ -335,10 +365,11 @@ COMFYUI_URL=http://host.docker.internal:8188
 |---|---|---|---|
 | `GET` | `/api/projects/community` | — | Get community projects |
 | `GET` | `/api/projects/my` | Bearer | Get my projects |
+| `GET` | `/api/projects/stream` | Bearer | SSE stream for live render updates |
 | `GET` | `/api/projects/:id` | Optional | Get project by ID |
-| `POST` | `/api/projects` | Bearer | Create project + render |
-| `PUT` | `/api/projects/:id` | Bearer | Update project |
-| `DELETE` | `/api/projects/:id` | Bearer | Delete project |
+| `POST` | `/api/projects` | Bearer | Create project & queue render |
+| `PUT` | `/api/projects/:id` | Bearer | Update project (owner only) |
+| `DELETE` | `/api/projects/:id` | Bearer | Delete project + Cloudinary cleanup |
 
 ### User
 
@@ -356,28 +387,43 @@ COMFYUI_URL=http://host.docker.internal:8188
 ```
 User uploads floor plan
         ↓
-Server saves project (imageUrl: "")
+Express saves original image to Cloudinary
         ↓
-Background job starts (non-blocking)
+Creates project record (imageUrl: "")
+        ↓
+Adds job to BullMQ queue → returns 201 immediately ✅
+        ↓
+BullMQ Worker picks up job (background)
         ↓
 ┌─────────────────────┐    ┌────────────────────────┐
 │   ComfyUI Provider  │ OR │   Gemini AI Provider    │
 │                     │    │                         │
-│ 1. Upload image to  │    │ 1. Convert to base64    │
-│    ComfyUI /upload  │    │ 2. Send to Gemini API   │
-│ 2. Queue workflow   │    │ 3. Extract image from   │
-│ 3. Poll /history    │    │    response             │
-│ 4. Fetch result     │    └────────────────────────┘
-└─────────────────────┘
+│ 1. Upload to ComfyUI│    │ 1. Convert to base64    │
+│ 2. Queue workflow   │    │ 2. Send to Gemini API   │
+│ 3. Wait for result  │    │ 3. Extract image        │
+└─────────────────────┘    └────────────────────────┘
         ↓
-Upload render to Cloudinary
+Upload rendered image to Cloudinary
         ↓
-Update project.imageUrl in DB
+Update project.imageUrl in database
         ↓
-Frontend polls GET /api/projects/:id every 3s
+Push SSE event → "project_updated" → client
         ↓
-Render appears when imageUrl is set
+React Query invalidates cache → UI auto-refreshes ✅
 ```
+
+---
+
+## Security
+
+| Layer | Implementation |
+|---|---|
+| **Rate Limiting** | Global: 100 req/15 min · Auth routes: 10 req/hour |
+| **Authentication** | JWT access token (15m) + HttpOnly refresh cookie (7d) |
+| **Authorization** | Ownership check on all project mutations (IDOR protection) |
+| **Environment Validation** | Zod schema validation on server startup and Vite client boot |
+| **Password Hashing** | bcryptjs |
+| **Input Validation** | Zod schemas on all API request bodies |
 
 ---
 
@@ -398,30 +444,11 @@ The project uses the **FLUX.2-klein image edit workflow** which takes a referenc
 
 ---
 
-## Authentication Flow
-
-### Email/Password
-```
-Register → Email verification → Login → Access token (15m) + Refresh token cookie (7d)
-```
-
-### Google OAuth (GSI)
-```
-Click Google button → Google popup → ID token → POST /api/auth/google/token → JWT
-```
-
-### Token Refresh
-```
-Access token expires → Axios interceptor catches 401 → POST /auth/refresh (cookie) → New token → Retry request
-```
-
----
-
 ## Docker Setup
 
 ### Development
 ```bash
-# start all services with hot reload
+# start all services (postgres, redis, server, client) with hot reload
 docker-compose -f docker-compose.dev.yml up -d
 
 # view logs
@@ -452,6 +479,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [ComfyUI](https://github.com/comfyanonymous/ComfyUI) — local AI inference
 - [FLUX.2-klein](https://huggingface.co/black-forest-labs) — diffusion model by Black Forest Labs
 - [Google Gemini](https://ai.google.dev) — cloud AI image generation
+- [BullMQ](https://docs.bullmq.io) — Redis-based job queue
 - [Prisma](https://prisma.io) — next-generation ORM
 - [TanStack Query](https://tanstack.com/query) — powerful data fetching
 

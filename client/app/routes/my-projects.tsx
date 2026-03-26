@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { ProjectCard } from "~/components/project/ProjectCard";
 import { ProjectCardSkeleton } from "~/components/project/ProjectCardSkeleton"; // Import individual card skeleton
-import { useMyProjects } from "~/hooks/useProject";
+import { useMyProjects, useProjectUpdates } from "~/hooks/useProject";
 import { useAuthStore } from "~/store/authStore";
 import { useEffect } from "react";
 import { Plus } from "lucide-react";
@@ -20,6 +20,7 @@ export default function MyProjects() {
     const user = useAuthStore((state) => state.user);
     const hasHydrated = useAuthStore((state) => state._hasHydrated);
     const { data: myProjects, isLoading } = useMyProjects();
+    useProjectUpdates();
 
     useEffect(() => {
         if (!hasHydrated) return;

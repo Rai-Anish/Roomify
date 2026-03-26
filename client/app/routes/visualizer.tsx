@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useProject } from "~/hooks/useProject";
+import { useProject, useProjectUpdates } from "~/hooks/useProject";
 import { ArrowLeft, Loader2, RefreshCcw } from "lucide-react";
 import FullPageLoader from "~/components/ui/FullPageLoader";
 import { toast } from "sonner";
@@ -17,14 +17,8 @@ const VisualizerId = () => {
   const [sliderPos, setSliderPos] = useState(50);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const { data: project, isLoading, refetch } = useProject(projectId, true);
-
-  // 1. Polling Logic
-  useEffect(() => {
-    if (project?.imageUrl && project.imageUrl !== "FAILED") return;
-    const interval = setInterval(() => refetch(), 3000);
-    return () => clearInterval(interval);
-  }, [project, refetch]);
+  const { data: project, isLoading } = useProject(projectId, true);
+  useProjectUpdates();
 
   // 2. Logic: Native Share / Clipboard Fallback
   const handleShare = async () => {

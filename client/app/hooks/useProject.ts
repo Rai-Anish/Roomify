@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import axiosInstance from "../lib/axios.js";
 import type { ApiResponse, Project } from "../types/index.js";
+import { useAuthStore } from "../store/authStore.js";
 
 // --- QUERIES ---
 
@@ -110,4 +112,27 @@ export const useDeleteProject = () => {
             queryClient.invalidateQueries({ queryKey: ["projects"] });
         },
     });
+};
+
+export const useProjectUpdates = () => {
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        const token = useAuthStore.getState().accessToken;
+        const source = new EventSource(`${import.meta.env.VITE_SERVER_URL || "http://localhost:5000/api"}/projects/stream?token=${token || ""}`, {
+            withCredentials: true
+        });
+
+        source.addEventListener("project_updated", (event: any) => {
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        });
+
+        source.addEventListener("project_failed", (event: any) => {
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        });
+
+        return () => {
+            source.close();
+        };
+    }, [queryClient]);
 };

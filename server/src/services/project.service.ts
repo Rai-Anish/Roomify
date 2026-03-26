@@ -3,9 +3,9 @@ import { CreateProjectInput, UpdateProjectInput } from "../types/project.types.j
 import { Visibility } from "@prisma/client";
 
 
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { uploadToCloudinary, getPublicIdFromUrl, deleteFromCloudinary } from "../utils/cloudinary.js";
 import ApiError from "../utils/ApiError.js";
-import { processProject } from "../jobs/project.processor.js";
+import { projectQueue } from "../jobs/queue.js";
 
 export const createProject = async (
     userId: number,
@@ -29,7 +29,12 @@ export const createProject = async (
         },
     });
 
-    processProject(project.id, input.provider, file);
+    await projectQueue.add("render-project", {
+        projectId: project.id,
+        provider: input.provider,
+        fileBuffer: file.buffer.toString("base64"),
+        mimeType: file.mimetype
+    });
 
     return project;
 };
@@ -98,6 +103,15 @@ export const deleteProject = async (id: number, userId: number) => {
     const project = await prisma.project.findUnique({ where: { id } });
     if (!project) throw new ApiError(404, "Project not found");
     if (project.userId !== userId) throw new ApiError(403, "You do not have permission to delete this project");
+
+    if (project.imageUrl && !project.imageUrl.startsWith("FAILED")) {
+        const publicId = getPublicIdFromUrl(project.imageUrl);
+        if (publicId) await deleteFromCloudinary(publicId).catch(console.error);
+    }
+    if (project.originalImageUrl) {
+        const publicId = getPublicIdFromUrl(project.originalImageUrl);
+        if (publicId) await deleteFromCloudinary(publicId).catch(console.error);
+    }
 
     return prisma.project.delete({ where: { id } });
 };

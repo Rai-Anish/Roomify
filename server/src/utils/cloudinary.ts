@@ -27,3 +27,25 @@ export const uploadToCloudinary = async (
         uploadStream.end(buffer);
     });
 };
+
+export const getPublicIdFromUrl = (url: string): string | null => {
+    try {
+        const parts = url.split("/upload/");
+        if (parts.length < 2) return null;
+        
+        let path = parts[1]; 
+        path = path.replace(/^v\d+\//, ''); 
+        return path.replace(/\.[^/.]+$/, ""); 
+    } catch {
+        return null;
+    }
+};
+
+export const deleteFromCloudinary = async (publicId: string): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(publicId, (error, result) => {
+            if (error) reject(error);
+            else resolve(result.result === 'ok');
+        });
+    });
+};

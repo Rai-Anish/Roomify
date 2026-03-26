@@ -3,6 +3,7 @@ import * as projectService from "../services/project.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
+import { addSseClient } from "../utils/sse.js";
 
 export const createProject = asyncHandler(async (req: Request, res: Response) => {
     if (!req.file) throw new ApiError(400, "Floor plan image is required");
@@ -14,6 +15,19 @@ export const createProject = asyncHandler(async (req: Request, res: Response) =>
     );
 
     res.status(201).json(new ApiResponse(201, { project }, "Project created successfully"));
+});
+
+export const streamProjectUpdates = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user!.id.toString();
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    addSseClient(userId, req, res);
+
+    res.write(`event: connected\ndata: ${JSON.stringify({ message: "Connected to Project SSE stream" })}\n\n`);
 });
 
 export const getMyProjects = asyncHandler (async (req: Request, res: Response) => {
