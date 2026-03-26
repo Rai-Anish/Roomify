@@ -87,9 +87,14 @@ roomify/
 ├── client/                          # React Router 7 frontend
 │   ├── app/
 │   │   ├── components/              # Reusable UI components
-│   │   │   ├── Navbar.tsx
-│   │   │   ├── NavDropdown.tsx
-│   │   │   ├── NavMobile.tsx
+                ├── Navbar/
+│   │   │           ├── Navbar.tsx
+│   │   │           ├── NavDropdown.tsx
+│   │   │           ├── NavMobile.tsx
+                ├── Profile/
+│   │   │           ├── ChangePasswordForm.tsx
+│   │   │           ├── DangerZone.tsx
+│   │   │           ├── EditProfileForm.tsx
 │   │   │   ├── Footer.tsx
 │   │   │   ├── ProjectCard.tsx
 │   │   │   ├── ProjectSettingsModal.tsx
@@ -411,18 +416,6 @@ docker-compose -f docker-compose.dev.yml exec server npx prisma studio
 ```bash
 docker-compose up -d
 ```
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch — `git checkout -b feature/your-feature`
-3. Commit your changes — `git commit -m "feat: add your feature"`
-4. Push to the branch — `git push origin feature/your-feature`
-5. Open a Pull Request
-
-Please follow [Conventional Commits](https://conventionalcommits.org) for commit messages.
 
 ---
 
