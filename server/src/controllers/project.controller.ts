@@ -35,11 +35,11 @@ export const getProject = asyncHandler (async (req: Request, res: Response) => {
 });
 
 export const updateProject = asyncHandler(async (req: Request, res: Response) => {
-    const project = await projectService.updateProject(parseInt(req.params.id), req.body);
+    const project = await projectService.updateProject(parseInt(req.params.id), req.body, req.user!.id);
     res.status(200).json(new ApiResponse(200, { project }, "Project updated successfully"));
 });
 
 export const deleteProject = asyncHandler (async (req: Request, res: Response) => {
-    await projectService.deleteProject(parseInt(req.params.id));
+    await projectService.deleteProject(parseInt(req.params.id), req.user!.id);
     res.status(200).json(new ApiResponse(200,{},"Project deleted successfully"));
 });

@@ -78,7 +78,11 @@ export const getProjectById = async (id: number, userId?: number) => {
     return project;
 };
 
-export const updateProject = async (id: number, input: UpdateProjectInput) => {
+export const updateProject = async (id: number, input: UpdateProjectInput, userId: number) => {
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) throw new ApiError(404, "Project not found");
+    if (project.userId !== userId) throw new ApiError(403, "You do not have permission to update this project");
+
     return prisma.project.update({
         where: { id },
         data: input,
@@ -90,6 +94,10 @@ export const updateProject = async (id: number, input: UpdateProjectInput) => {
     });
 };
 
-export const deleteProject = async (id: number) => {
+export const deleteProject = async (id: number, userId: number) => {
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) throw new ApiError(404, "Project not found");
+    if (project.userId !== userId) throw new ApiError(403, "You do not have permission to delete this project");
+
     return prisma.project.delete({ where: { id } });
 };
