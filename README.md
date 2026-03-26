@@ -1,4 +1,4 @@
-# Roomify — AI Floor Plan Visualizer
+# FloorPlan3D — AI Floor Plan Visualizer
 
 > Transform 2D floor plans into photorealistic 3D architectural renders using AI.
 
@@ -12,7 +12,7 @@
 
 ## Overview
 
-Roomify is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — delivered in real-time via Server-Sent Events.
+FloorPlan3D is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — delivered in real-time via Server-Sent Events.
 
 ## DEMO
 ![alt text](./docs/florplan3d.gif)
@@ -20,7 +20,7 @@ Roomify is a full-stack web application that uses AI to convert 2D architectural
 
 ## Architecture
 
-![Roomify Architecture](./docs/architecture.png)
+![FloorPlan3D Architecture](./docs/architecture.png)
 
 ### 1. Authentication
 
@@ -155,7 +155,7 @@ sequenceDiagram
 ## Project Structure
 
 ```
-roomify/
+FloorPlan3D/
 ├── client/                          # React Router 7 frontend
 │   ├── app/
 │   │   ├── components/              # Reusable UI components
@@ -244,8 +244,8 @@ roomify/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Rai-Anish/Roomify.git
-cd roomify
+git clone https://github.com/Rai-Anish/FloorPlan3D.git
+cd FloorPlan3D
 ```
 
 ### 2. Configure environment variables
@@ -302,10 +302,10 @@ Create a `.env` file in the root directory. See `.env.example` for all variables
 
 ```env
 # Database
-POSTGRES_USER=roomify
+POSTGRES_USER=FloorPlan3D
 POSTGRES_PASSWORD=password
-POSTGRES_DB=roomify_db
-DATABASE_URL=postgresql://roomify:password@db:5432/roomify_db
+POSTGRES_DB=FloorPlan3D_db
+DATABASE_URL=postgresql://FloorPlan3D:password@db:5432/FloorPlan3D_db
 
 # Redis (auto-configured via Docker)
 REDIS_URL=redis://redis:6379
