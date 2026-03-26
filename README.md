@@ -10,31 +10,19 @@
 
 ---
 
+## Overview
+
+Roomify is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — delivered in real-time via Server-Sent Events.
+
+## DEMO
+![alt text](./docs/florplan3d.gif)
+[**🎥 Watch Full Video Demo on YouTube**](https://youtu.be/fiViL17RGFA)
+
 ## Architecture
 
 ![Roomify Architecture](./docs/architecture.png)
 
-### 1. Infrastructure
-
-```mermaid
-graph LR
-    Client["🌐 React Client\nVite + React Router v7"]
-    Server["⚙️ Express API\nNode + TypeScript"]
-    DB[("🐘 PostgreSQL")]
-    Cache[("🔴 Redis")]
-    Storage["☁️ Cloudinary"]
-    AI["🤖 AI Provider\nGemini / ComfyUI"]
-
-    Client -->|REST + SSE| Server
-    Server --> DB
-    Server --> Cache
-    Cache -->|BullMQ Job| AI
-    AI --> Storage
-    Storage --> Server
-    Server -->|SSE Push| Client
-```
-
-### 2. Authentication
+### 1. Authentication
 
 ```mermaid
 sequenceDiagram
@@ -59,7 +47,7 @@ sequenceDiagram
     Client->>API: Retry original request ✅
 ```
 
-### 3. Project Creation & AI Rendering
+### 2. Project Creation & AI Rendering
 
 ```mermaid
 sequenceDiagram
@@ -88,42 +76,6 @@ sequenceDiagram
     Worker-->>Client: 🔔 SSE event: project_updated
     Client->>Client: Auto-refresh UI ✅
 ```
-
-### 4. Real-Time Updates (SSE)
-
-```mermaid
-graph LR
-    A["useProjectUpdates()\nhook mounts"] -->|"Open EventSource\n/api/projects/stream?token=..."| B["Express SSE endpoint\nauthenticate middleware"]
-    B --> C["SSE Manager\nstores userId + res"]
-    D["BullMQ Worker\njob finishes"] --> E["sendSseEvent(userId, 'project_updated')"]
-    E --> C
-    C -->|"Writes event to stream"| F["Browser receives event"]
-    F --> G["React Query\ninvalidateQueries()"]
-    G --> H["UI auto-updates\nwith new image ✅"]
-```
-
-### 5. Security Layers
-
-```mermaid
-flowchart TD
-    R["Incoming Request"]
-    R --> A["🛡️ Global Rate Limit\n100 req / 15 min"]
-    A --> B{"Auth route?"}
-    B -->|Yes| C["🔐 Strict Auth Limit\n10 req / 1 hour"]
-    B -->|No| D["authenticate\nVerify JWT"]
-    C --> D
-    D --> E{"Mutating project?"}
-    E -->|Yes| F["IDOR Check\nmust be project owner"]
-    E -->|No| G["Controller ✅"]
-    F --> G
-    G --> H["📦 Global Error Handler"]
-```
-
-
-
-## Overview
-
-Roomify is a full-stack web application that uses AI to convert 2D architectural floor plans into photorealistic top-down 3D renders. Users upload a floor plan image and receive a professional visualization with realistic materials, furniture, and lighting — delivered in real-time via Server-Sent Events.
 
 **Two AI rendering providers are supported:**
 
