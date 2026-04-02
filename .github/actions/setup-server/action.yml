@@ -1,0 +1,17 @@
+name: Setup Server
+description: Setup Node + install deps + Prisma
+
+inputs:
+  working-directory:
+    default: server
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-node
+      with:
+        working-directory: ${{ inputs.working-directory }}
+
+    - shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npx prisma generate

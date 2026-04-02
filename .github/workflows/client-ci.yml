@@ -1,0 +1,49 @@
+name: Client CI
+
+on:
+  workflow_call:
+    inputs:
+      run-build:
+        type: boolean
+        default: true
+
+env:
+  npm_config_engine_strict: false
+
+jobs:
+  client-ci:
+    name: Client CI (Lint, Test, Build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
+        with:
+          working-directory: client
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Test
+        working-directory: client
+        run: npm run test:run
+
+      - name: Coverage
+        working-directory: client
+        run: npm run test:coverage
+
+      - name: Build
+        if: inputs.run-build
+        working-directory: client
+        run: npm run build
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-coverage
+          path: client/coverage/
+          retention-days: 7
