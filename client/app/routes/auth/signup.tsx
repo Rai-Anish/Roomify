@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { useLogin, useRegister } from "../../hooks/useAuth";
+import { useRegister } from "../../hooks/useAuth";
 import { AuthForm } from "~/components/AuthForm";
 import { FormField } from "~/components/ui/FormField";
 import { Mail, Lock, User } from "lucide-react";
@@ -8,7 +7,6 @@ import {z} from "zod";
 import { registerSchema } from "~/schemas/auth.schema";
 
 export default function SignUpPage() {
-  const navigate = useNavigate();
   const { mutate, isPending } = useRegister();
   const [message, setMessage] = useState<string>("");
   const [messageType, setMessageType] = useState<"error" | "success">("error");

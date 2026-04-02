@@ -56,7 +56,7 @@ export const ROOMIFY_RENDER_PROMPT = `
     `.trim();
 
 
-import { Shield, Zap, Users, Globe, Headphones, Building2, Sparkles, CheckCircle2 } from "lucide-react";
+import { Shield, Zap, Users, Globe, Headphones, Building2, Sparkles } from "lucide-react";
 
 export const TESTIMONIALS = [
     { quote: "Roomify cut our visualization turnaround from 3 days to 20 minutes. Our clients are blown away.", author: "Sarah Chen", role: "Principal Architect", company: "Chen & Associates", avatar: "SC" },

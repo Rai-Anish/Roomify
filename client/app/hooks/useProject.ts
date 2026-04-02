@@ -123,11 +123,11 @@ export const useProjectUpdates = () => {
             withCredentials: true
         });
 
-        source.addEventListener("project_updated", (event: any) => {
+        source.addEventListener("project_updated", () => {
             queryClient.invalidateQueries({ queryKey: ["projects"] });
         });
 
-        source.addEventListener("project_failed", (event: any) => {
+        source.addEventListener("project_failed", () => {
             queryClient.invalidateQueries({ queryKey: ["projects"] });
         });
 

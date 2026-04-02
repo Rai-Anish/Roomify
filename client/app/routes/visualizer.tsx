@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useProject, useProjectUpdates } from "~/hooks/useProject";
-import { ArrowLeft, Loader2, RefreshCcw } from "lucide-react";
+import { ArrowLeft, RefreshCcw } from "lucide-react";
 import FullPageLoader from "~/components/ui/FullPageLoader";
 import { toast } from "sonner";
 
@@ -29,7 +29,7 @@ const VisualizerId = () => {
         await navigator.clipboard.writeText(window.location.href);
         toast.success("Link copied to clipboard!");
       }
-    } catch (err) {
+    } catch {
       toast.error("Share canceled");
     }
   };
@@ -49,7 +49,7 @@ const VisualizerId = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       toast.error("Download failed. Right-click the image to save.");
     } finally {
       setIsDownloading(false);

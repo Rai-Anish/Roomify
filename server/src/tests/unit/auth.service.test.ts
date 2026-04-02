@@ -1,11 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../config/db.js";
 import {
     registerUser,
     loginUser,
     verifyEmail,
-    resendVerificationEmail,
 } from "../../services/auth.service.js";
 
 const mockUser = {

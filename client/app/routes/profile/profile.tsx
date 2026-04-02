@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Loader2 } from "lucide-react";
 import { useAuthStore } from "~/store/authStore";
 import { useProfile } from "~/hooks/useUser";
 import ProfileStats from "~/components/profile/ProfileStats";

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useLogin } from "../../hooks/useAuth";
 import { AuthForm } from "~/components/AuthForm";
 import { FormField } from "~/components/ui/FormField";
-import { Mail, Lock, Chrome, Github } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const navigate = useNavigate();

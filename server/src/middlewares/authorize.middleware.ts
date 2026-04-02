@@ -17,7 +17,7 @@ export const authorizeProject = async (req: Request, res: Response, next: NextFu
 
         next();
 
-    } catch (error) {
+    } catch {
         return res.status(500).json({ error: "Internal server error" });
     }
 };

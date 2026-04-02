@@ -2,18 +2,15 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Navbar from "~/components/navbar/Navbar";
 import { ArrowRight, Layers } from "lucide-react";
-import { Button } from "~/components/ui/Button";
 import Upload from "~/components/Upload";
 import { ProjectSettingsModal } from "~/components/project/ProjectSettingsModal";
 import { ProjectCard } from "~/components/project/ProjectCard";
-import { useCommunityProjects, useCreateProject, useMyProjects } from "~/hooks/useProject";
-import { useAuthStore } from "~/store/authStore";
+import { useCommunityProjects, useCreateProject } from "~/hooks/useProject";
 
 export default function Home() {
     const navigate = useNavigate();
     const createProjectMutation = useCreateProject();
     const { data: communityProjects, isLoading: communityLoading } = useCommunityProjects();
-    const user = useAuthStore((state) => state.user);
 
     const [pendingImage, setPendingImage] = useState<string | null>(null);
     const [pendingFile, setPendingFile] = useState<File | null>(null);

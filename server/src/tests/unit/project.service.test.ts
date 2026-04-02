@@ -30,7 +30,7 @@ const mockFile = {
     buffer: Buffer.from("fake-image-data"),
     mimetype: "image/png",
     originalname: "floorplan.png",
-} as Express.Multer.File;
+} as unknown as Express.Multer.File;
 
 describe("project.service", () => {
     describe("createProject", () => {
@@ -74,7 +74,7 @@ describe("project.service", () => {
                 { ...mockProject, visibility: "COMMUNITY" },
             ] as any);
 
-            const result = await getCommunityProjects();
+            await getCommunityProjects();
 
             expect(prisma.project.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({

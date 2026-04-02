@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { Menu, X, Sun, Moon, Plus } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuthStore } from "~/store/authStore";
 import { useLogout } from "~/hooks/useAuth";
 import { NavDropdown } from "./NavDropdown";
@@ -20,12 +20,15 @@ const Navbar = () => {
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
 
     const isSignedIn = !!user;
 
     useEffect(() => {
-        const handler = () => setScrolled(window.scrollY > 8);
+        const handler = () => {
+            if (window.scrollY > 8) {
+                document.body.classList.add("scrolled");
+            }
+        };
         window.addEventListener("scroll", handler, { passive: true });
         return () => window.removeEventListener("scroll", handler);
     }, []);

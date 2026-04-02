@@ -1,5 +1,4 @@
-import { vi, beforeAll, afterAll, afterEach } from "vitest";
-import { prisma } from "../config/db.js";
+import { vi, afterAll, afterEach } from "vitest";
 
 // mock prisma globally
 vi.mock("../config/db.js", () => ({

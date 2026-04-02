@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt.utils.js";
-import { prisma } from "../config/db.js";
 import ApiError from "../utils/ApiError.js";
 
 declare global {
@@ -30,7 +29,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         req.user = { id: decoded.id, email: decoded.email, username: decoded.username };
         next();
 
-    } catch (error) {
+    } catch {
         next(new ApiError(401, "Invalid or expired token"));
     }
 };
