@@ -7,6 +7,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![React](https://img.shields.io/badge/React-19.x-61DAFB.svg)
 ![Prisma](https://img.shields.io/badge/Prisma-7.x-2D3748.svg)
+![Vitest](https://img.shields.io/badge/Vitest-4.x-6E9F18.svg)
+![ESLint](https://img.shields.io/badge/ESLint-9.x-4B32C3.svg)
 
 ---
 
@@ -153,6 +155,15 @@ sequenceDiagram
 | Docker + Docker Compose | Containerized development & production |
 | Redis (docker) | BullMQ job queue |
 | Cloudinary | Image CDN and storage |
+| GitHub Actions | CI/CD pipeline |
+
+### Testing & Quality
+| Technology | Purpose |
+|---|---|
+| Vitest | Unit & integration testing |
+| React Testing Library | Component testing |
+| ESLint | Code linting |
+| @typescript-eslint | TypeScript linting |
 
 ---
 
@@ -186,7 +197,12 @@ FloorPlan3D/
 │   │   │   └── ...
 │   │   ├── store/
 │   │   │   └── authStore.ts         # Zustand auth store
-│   │   ├── lib/
+│   │   └── tests/                   # Test files
+│   │       ├── components/           # Component tests
+│   │       ├── hooks/                # Hook tests
+│   │       ├── store/                # Store tests
+│   │       └── setup.tsx             # Test setup
+│   ├── lib/
 │   │   │   └── axios.ts             # Axios instance + interceptors
 │   │   ├── env.ts                   # Zod client env validation
 │   │   └── root.tsx
@@ -221,14 +237,22 @@ FloorPlan3D/
 │   │   │   └── comfyui.service.ts
 │   │   └── utils/
 │   │       ├── ApiError.ts
+│   │       ├── ApiResponse.ts
 │   │       ├── cloudinary.ts        # Upload + delete helpers
 │   │       └── sse.ts               # SSE manager
+│   │   └── tests/                   # Test files
+│   │       ├── unit/                 # Unit tests
+│   │       ├── integration/          # Integration tests
+│   │       └── setup.ts             # Test setup
 │   ├── prisma/
 │   │   └── schema.prisma
 │   └── package.json
 │
 ├── docs/
 │   └── architecture.png             # Architecture diagram
+├── .github/
+│   └── workflows/
+│       └── test.yml                # CI/CD pipeline
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 └── .env.example
@@ -297,6 +321,53 @@ docker-compose -f docker-compose.dev.yml exec server npx prisma migrate dev
 | Server API | http://localhost:5000 |
 | Prisma Studio | http://localhost:5555 |
 | ComfyUI | http://localhost:8188 |
+
+---
+
+## Testing
+
+### Run Tests
+
+```bash
+# Client tests
+cd client && npm test
+
+# Server tests
+cd server && npm test
+
+# Run tests once (CI mode)
+cd client && npm run test:run
+cd server && npm run test:run
+```
+
+### Run Linting
+
+```bash
+# Client lint
+cd client && npm run lint
+
+# Server lint
+cd server && npm run lint
+
+# Auto-fix linting issues
+cd client && npm run lint:fix
+cd server && npm run lint:fix
+```
+
+### Test Coverage
+
+```bash
+# Generate coverage report
+cd client && npm run test:coverage
+cd server && npm run test:coverage
+```
+
+### CI/CD
+
+GitHub Actions runs on every push and PR:
+- **Lint jobs** — ESLint checks for client and server
+- **Test jobs** — Vitest unit & integration tests
+- **Coverage jobs** — Generate coverage reports
 
 ---
 
