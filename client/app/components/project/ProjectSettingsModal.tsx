@@ -22,7 +22,7 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
             <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold">Project settings</h2>
-                    <button onClick={onCancel} className="text-zinc-400 hover:text-zinc-600">
+                    <button onClick={onCancel} className="text-zinc-400 hover:text-zinc-600" aria-label="Close">
                         <X size={20} />
                     </button>
                 </div>
