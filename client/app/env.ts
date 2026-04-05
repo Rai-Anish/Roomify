@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  VITE_SERVER_URL: z.string().url().default("http://localhost:5000/api"),
+  VITE_SERVER_URL: z.string().default("http://localhost:5000/api"),
   VITE_GOOGLE_CLIENT_ID: z.string().optional(),
 });
 

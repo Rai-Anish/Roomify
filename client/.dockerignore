@@ -1,4 +1,27 @@
-.react-router
-build
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production / Build
+dist/
+build/
+.react-router/
+
+# Environment
+.env*
+!.env.example
+
+# Git
+.git
+.gitignore
+.dockerignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# Other
 README.md
+Dockerfile*
+docker-compose*.yml

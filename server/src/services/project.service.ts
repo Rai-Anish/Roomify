@@ -29,7 +29,7 @@ export const createProject = async (
         },
     });
 
-    await projectQueue.add("render-project", {
+    await projectQueue?.add("render-project", {
         projectId: project.id,
         provider: input.provider,
         fileBuffer: file.buffer.toString("base64"),

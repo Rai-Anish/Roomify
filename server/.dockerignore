@@ -1,5 +1,27 @@
-node_modules
+# Build artifacts
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Environment
 .env
-.env.local
+.env.*
+!.env.example
+
+# Git
 .git
-*.md
+.gitignore
+.dockerignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Other
+README.md
+Dockerfile*
+docker-compose*.yml

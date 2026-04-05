@@ -1,30 +1,14 @@
 services:
-  db:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    restart: always
-    ports:
-      - "6379:6379"
-
   server:
-    build: ./server
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
     ports:
       - "5000:5000"
       - "5555:5555"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - PORT=5000
       - NODE_ENV=development
       - RESEND_API_KEY=${RESEND_API_KEY}
@@ -36,22 +20,19 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - COMFYUI_URL=${COMFYUI_URL}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
-      - CLIENT_URL=${CLIENT_URL}
     volumes:
-      - ./server:/app
-      - /app/node_modules
-    command: sh -c "npm install && npx prisma generate && npm run dev"
-    depends_on:
-      - db
-      - redis
+      - ./server:/app        # your source code, live
+      - /app/node_modules    # node_modules stays in container, not overwritten
+    command: sh -c "npx prisma generate && npm run dev"
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     environment:
@@ -60,9 +41,6 @@ services:
     volumes:
       - ./client:/app
       - /app/node_modules
-    command: sh -c "npm install && npm run dev"
+    command: npm run dev
     depends_on:
       - server
-
-volumes:
-  postgres_data:

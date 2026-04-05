@@ -14,6 +14,11 @@ export interface ProjectJobData {
 }
 
 export const initProjectWorker = () => {
+    if (!connection) {
+        console.log("⚠️ BullMQ Worker disabled - REDIS_URL not configured");
+        return;
+    }
+
     const worker = new Worker(
         "project-render-queue",
         async (job: Job<ProjectJobData>) => {

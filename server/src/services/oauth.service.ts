@@ -2,11 +2,12 @@ import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../config/db.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.utils.js";
 import ApiError from "../utils/ApiError.js";
+import { env } from "../config/env.js";
 
 const client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_CALLBACK_URL
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    env.GOOGLE_CALLBACK_URL
 );
 
 export const getGoogleAuthUrl = (): string => {
@@ -28,7 +29,7 @@ export const handleGoogleCallback = async (code: string) => {
     // verify and decode id_token — this is what google-auth-library does best
     const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
