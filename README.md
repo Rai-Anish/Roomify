@@ -149,13 +149,16 @@ sequenceDiagram
 | FLUX.2-klein-base-4b-fp8 | Diffusion model |
 | qwen_3_4b | CLIP text encoder |
 
-### Infrastructure
+### Infrastructure & Deployment
 | Technology | Purpose |
 |---|---|
-| Docker + Docker Compose | Containerized development & production |
-| Redis (docker) | BullMQ job queue |
-| Cloudinary | Image CDN and storage |
-| GitHub Actions | CI/CD pipeline |
+| **Render** | Backend API hosting (Managed Node.js) |
+| **Vercel** | Frontend hosting (React Router / Vite) |
+| **Neon** | Serverless PostgreSQL database |
+| **Upstash** | Serverless Redis for BullMQ |
+| **Cloudinary** | Image CDN and storage |
+| **GitHub Actions** | CI pipeline (Linting & Tests) |
+| **Docker** | Containerized development environment |
 
 ### Testing & Quality
 | Technology | Purpose |
@@ -251,8 +254,11 @@ FloorPlan3D/
 ├── docs/
 │   └── architecture.png             # Architecture diagram
 ├── .github/
+│   ├── actions/                     # Custom composite actions
 │   └── workflows/
-│       └── test.yml                # CI/CD pipeline
+│       ├── ci.yml                  # Main CI entry point
+│       ├── client-ci.yml           # Client-specific checks
+│       └── server-ci.yml           # Server-specific checks
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 └── .env.example
@@ -362,12 +368,13 @@ cd client && npm run test:coverage
 cd server && npm run test:coverage
 ```
 
-### CI/CD
+### CI Pipeline
 
-GitHub Actions runs on every push and PR:
+GitHub Actions runs on every push to `main`/`development` and on all Pull Requests:
 - **Lint jobs** — ESLint checks for client and server
 - **Test jobs** — Vitest unit & integration tests
-- **Coverage jobs** — Generate coverage reports
+- **Build jobs** — Verifies TypeScript compilation and Prisma generation
+- **Coverage reports** — Automatically uploaded as artifacts
 
 ---
 
@@ -547,10 +554,27 @@ docker-compose -f docker-compose.dev.yml exec server npx prisma migrate dev --na
 docker-compose -f docker-compose.dev.yml exec server npx prisma studio
 ```
 
-### Production
-```bash
-docker-compose up -d
-```
+---
+
+## Deployment
+
+FloorPlan3D is optimized for a hybrid deployment:
+
+### 1. Backend (Render)
+- **Service Type**: Web Service
+- **Build Command**: `cd server && npm install && npm run build`
+- **Start Command**: `cd server && npm run start`
+- **Env Vars**: Set `DATABASE_URL`, `REDIS_URL`, `CLIENT_URL`, etc.
+
+### 2. Frontend (Vercel)
+- **Framework Preset**: Vite
+- **Build Command**: `npm run build`
+- **Output Directory**: `build/client`
+- **Env Vars**: Set `VITE_SERVER_URL` to your Render API URL.
+
+### 3. Database & Redis
+- **Neon**: Use the connection string provided in your Neon dashboard.
+- **Upstash**: Use the `REDIS_URL` (starts with `rediss://`) from your Upstash console.
 
 ---
 
