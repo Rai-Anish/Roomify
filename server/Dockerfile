@@ -3,7 +3,7 @@
 # -----------------
 # Stage 1: build
 # -----------------
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -22,7 +22,7 @@ RUN npm run build
 # -----------------
 # Stage 2: production
 # -----------------
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # Install only production deps
