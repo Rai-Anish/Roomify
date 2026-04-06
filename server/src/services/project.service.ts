@@ -6,12 +6,21 @@ import { Visibility } from "@prisma/client";
 import { uploadToCloudinary, getPublicIdFromUrl, deleteFromCloudinary } from "../utils/cloudinary.js";
 import ApiError from "../utils/ApiError.js";
 import { projectQueue } from "../jobs/queue.js";
+import { checkConnectivity as checkComfyUI } from "./comfyui.service.js";
+import { checkConnectivity as checkGemini } from "./gemini.service.js";
 
 export const createProject = async (
     userId: number,
     input: CreateProjectInput,
     file: Express.Multer.File
 ) => {
+    // 1. Check connectivity to the requested AI provider before proceeding
+    if (input.provider === "gemini") {
+        await checkGemini();
+    } else {
+        await checkComfyUI();
+    }
+
     const originalImageUrl = await uploadToCloudinary(
         file.buffer,
         file.mimetype,

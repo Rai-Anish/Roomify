@@ -58,11 +58,33 @@ export const initProjectWorker = () => {
     worker.on("failed", async (job, err) => {
         console.error(`❌ Job ${job?.id} failed:`, err);
         if (job) {
-            const proj = await prisma.project.update({
-                where: { id: job.data.projectId },
-                data: { imageUrl: "FAILED" },
-            });
-            sendSseEvent(proj.userId, "project_failed", { id: job.data.projectId, status: "failed" });
+            try {
+                // Fetch the project to get the original image URL
+                const proj = await prisma.project.findUnique({
+                    where: { id: job.data.projectId }
+                });
+                
+                if (proj) {
+                    // Try to delete original image from cloudinary if it exists
+                    if (proj.originalImageUrl) {
+                        const { getPublicIdFromUrl, deleteFromCloudinary } = await import("../utils/cloudinary.js");
+                        const publicId = getPublicIdFromUrl(proj.originalImageUrl);
+                        if (publicId) {
+                            await deleteFromCloudinary(publicId).catch(e => console.error("Cloudinary delete error:", e));
+                        }
+                    }
+
+                    // Delete the project from database
+                    await prisma.project.delete({
+                        where: { id: job.data.projectId },
+                    });
+                    
+                    // Notify the client that the project failed (so it can display error UI before redirecting/cleaning up)
+                    sendSseEvent(proj.userId, "project_failed", { id: job.data.projectId, status: "failed" });
+                }
+            } catch (dbErr) {
+                console.error("Error cleaning up failed project:", dbErr);
+            }
         }
     });
 

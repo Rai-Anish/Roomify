@@ -265,6 +265,23 @@ const getGeneratedImage = async (promptId: string): Promise<{ imageBuffer: Buffe
     throw new ApiError(500, "No images found in ComfyUI output");
 };
 
+// Check connectivity to ComfyUI
+export const checkConnectivity = async (): Promise<void> => {
+    try {
+        const response = await fetch(`${COMFYUI_URL}/system_stats`, { signal: AbortSignal.timeout(5000) });
+        if (!response.ok) {
+            throw new ApiError(503, "ComfyUI service is reachable but returned an error");
+        }
+    } catch (error: any) {
+        console.error("ComfyUI Connectivity Error:", error);
+        if (error instanceof ApiError) throw error;
+        
+        // Return a professional, elegant error message that reflects the actual configured URL
+        const urlObj = new URL(COMFYUI_URL);
+        throw new ApiError(503, `The local AI render engine (ComfyUI) is currently offline. Please ensure it is running and accessible at ${urlObj.hostname}:${urlObj.port}.`);
+    }
+};
+
 // Main function
 export const generateRender = async (
     buffer: Buffer,
@@ -287,7 +304,8 @@ export const generateRender = async (
         return await getGeneratedImage(promptId);
 
     } catch (error: any) {
+        console.error("ComfyUI Render Error:", error);
         if (error instanceof ApiError) throw error;
-        throw new ApiError(500, `ComfyUI error: ${error.message}`);
+        throw new ApiError(500, "The AI render engine encountered a processing error. Please check the ComfyUI console logs.");
     }
 };

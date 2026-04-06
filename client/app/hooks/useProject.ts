@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import axiosInstance from "../lib/axios.js";
 import type { ApiResponse, Project } from "../types/index.js";
 import { useAuthStore } from "../store/authStore.js";
+import { toast } from "sonner";
 
 // --- QUERIES ---
 
@@ -42,6 +43,10 @@ export const useProject = (id: number, enabled: boolean = true) => {
         },
         enabled: !!id && enabled,
         retryDelay: 1000,
+        retry: (failureCount, error: any) => {
+            if (error?.response?.status === 404) return false;
+            return failureCount < 3;
+        },
     });
 };
 
@@ -67,6 +72,10 @@ export const useCreateProject = () => {
             // Refresh "my projects" list so the new project shows up
             queryClient.invalidateQueries({ queryKey: ["projects", "my"] });
             queryClient.invalidateQueries({queryKey:["projects", "community"]})
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.message || "Failed to create project. Please try again.";
+            toast.error(message);
         },
     });
 };
@@ -127,8 +136,24 @@ export const useProjectUpdates = () => {
             queryClient.invalidateQueries({ queryKey: ["projects"] });
         });
 
-        source.addEventListener("project_failed", () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        source.addEventListener("project_failed", (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+            const projectId = Number(data.id);
+            
+            // Set the project cache to FAILED so the visualizer can show the error UI
+            // even though the project has been deleted from the database
+            queryClient.setQueryData(["projects", projectId], (old: any) => {
+                if (old) {
+                    return { ...old, imageUrl: "FAILED" };
+                }
+                return { id: projectId, imageUrl: "FAILED" };
+            });
+            // Cancel any in-flight requests that would return 404 and overwrite the state
+            queryClient.cancelQueries({ queryKey: ["projects", projectId] });
+            
+            // Invalidate lists to remove the deleted project
+            queryClient.invalidateQueries({ queryKey: ["projects", "my"] });
+            queryClient.invalidateQueries({ queryKey: ["projects", "community"] });
         });
 
         return () => {

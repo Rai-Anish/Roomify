@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useProject, useProjectUpdates } from "~/hooks/useProject";
-import { ArrowLeft, RefreshCcw } from "lucide-react";
+import { AlertCircle, ArrowLeft, RefreshCcw } from "lucide-react";
 import FullPageLoader from "~/components/ui/FullPageLoader";
 import { toast } from "sonner";
 
@@ -60,6 +60,7 @@ const VisualizerId = () => {
   if (!project) return <div className="p-20 text-center font-bold">Project not found.</div>;
 
   const isProcessing = !project.imageUrl || project.imageUrl === "";
+  const isFailed = project.imageUrl === "FAILED";
 
   return (
     <section className="min-h-screen bg-zinc-50 pb-20 pt-6 px-6">
@@ -73,8 +74,21 @@ const VisualizerId = () => {
         </button>
 
         <div className="grid grid-cols-1 gap-10">
-          {/* Main Visualizer Chunk */}
-          {isProcessing ? (
+          {isFailed ? (
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-red-50 flex flex-col items-center justify-center text-red-900 border border-red-200">
+              <AlertCircle className="w-12 h-12 text-red-500 mb-4 opacity-80" />
+              <p className="text-xl font-bold tracking-tight">Generation Failed</p>
+              <p className="text-red-700/70 text-sm mt-1 max-w-sm text-center">
+                We couldn't connect to the AI generator. This might be due to service maintenance or high load.
+              </p>
+              <button 
+                onClick={() => navigate(-1)}
+                className="mt-6 px-6 py-2 bg-red-600 text-white rounded-full font-medium hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+              >
+                Try Again with Different Provider
+              </button>
+            </div>
+          ) : isProcessing ? (
             <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-zinc-900 flex flex-col items-center justify-center text-white border border-zinc-800">
               <RefreshCcw className="w-12 h-12 animate-spin text-orange-500 mb-4 opacity-80" />
               <p className="text-lg font-medium tracking-tight">AI is crafting your space...</p>
@@ -95,7 +109,7 @@ const VisualizerId = () => {
             onShare={handleShare}
             onDownload={handleDownload}
             isDownloading={isDownloading}
-            isProcessing={isProcessing}
+            isProcessing={isProcessing || isFailed}
           />
         </div>
       </div>

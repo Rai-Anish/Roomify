@@ -43,7 +43,8 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="My floor plan"
-                            className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300"
+                            disabled={isPending}
+                            className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                     </div>
 
@@ -59,7 +60,8 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                                     provider === "comfyui"
                                         ? "border-zinc-800 bg-zinc-800 text-white"
                                         : "border-zinc-200 text-zinc-600 hover:border-zinc-400"
-                                }`}
+                                } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                                disabled={isPending}
                             >
                                 ComfyUI
                                 <span className="block text-xs font-normal mt-0.5 opacity-70">
@@ -73,7 +75,8 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                                     provider === "gemini"
                                         ? "border-zinc-800 bg-zinc-800 text-white"
                                         : "border-zinc-200 text-zinc-600 hover:border-zinc-400"
-                                }`}
+                                } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                                disabled={isPending}
                             >
                                 Gemini
                                 <span className="block text-xs font-normal mt-0.5 opacity-70">
@@ -95,7 +98,8 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                                     visibility === "PRIVATE"
                                         ? "border-zinc-800 bg-zinc-800 text-white"
                                         : "border-zinc-200 text-zinc-600 hover:border-zinc-400"
-                                }`}
+                                } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                                disabled={isPending}
                             >
                                 Private
                                 <span className="block text-xs font-normal mt-0.5 opacity-70">
@@ -109,7 +113,8 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                                     visibility === "COMMUNITY"
                                         ? "border-zinc-800 bg-zinc-800 text-white"
                                         : "border-zinc-200 text-zinc-600 hover:border-zinc-400"
-                                }`}
+                                } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                                disabled={isPending}
                             >
                                 Community
                                 <span className="block text-xs font-normal mt-0.5 opacity-70">
@@ -124,6 +129,7 @@ export const ProjectSettingsModal = ({ imagePreview, onConfirm, onCancel, isPend
                             type="button"
                             variant="outline"
                             onClick={onCancel}
+                            disabled={isPending}
                             className="flex-1"
                         >
                             Cancel
